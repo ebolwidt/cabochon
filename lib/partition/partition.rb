@@ -72,9 +72,6 @@ class Partition
       if (i + 1 < partitions.length)
         next_logical = partitions[i + 1]
         logical_lba_end = logical.lba_start + logical.lba_length - 1
-        if (next_logical.lba_start <= logical_lba_end)
-          raise "No space for additional EBR between logical partitions"
-        end
         ebr[462, 16] = create_ebr_pointer(logical_lba_end + 1, next_logical)
         offset = (lba_start + logical_lba_end + 1) * 512
       else            
@@ -85,7 +82,7 @@ class Partition
   end
   
   def create_ebr_pointer(ebr_lba, logical)
-    ebr_lba_length = logical.lba_start + logical.lba_length - ebr_lba
+    ebr_lba_length = logical.lba_start + logical.lba_length
     bytes = "\0" * 16
     bytes[0] = 0 # status
     bytes[1,3] = CHS.from_lba(ebr_lba).to_b

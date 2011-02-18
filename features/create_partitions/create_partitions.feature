@@ -59,12 +59,12 @@ And the following partitions to create:
 | extended | 63    | 999 |
 | primary  | 1000  | 16064 |
 | logical  | 63    | 511 |
-| logical  | 576   | 900 |
+| logical  | 126   | 400 |
 When I ask to create a fresh partition table
 Then the list of partitions should be:
 | kind     | start | end |
 | extended | 63    | 999 |
 | primary  | 1000  | 16064 |
 | logical  | 63    | 511 |
-| logical  | 576   | 900 |
+| logical  | 126   | 400 |
 
