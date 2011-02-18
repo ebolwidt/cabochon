@@ -35,7 +35,7 @@ class MbrPartitionTable
   # Dangerous! Don't allow people to write to block devices until they turn on a certain flag/option or something
   def write(file)
     if (@new_table)
-      mbr = create_mbr
+      mbr = MbrPartitionTable.create_mbr
     else
       mbr = read_mbr(file)
     end
@@ -49,7 +49,7 @@ class MbrPartitionTable
   end
  
   # Creates a new, empty MBR
-  def create_mbr
+  def self.create_mbr
     mbr = "\0" * 512
     mbr[510,2] = [ 0xAA55 ].pack("v")
     mbr
