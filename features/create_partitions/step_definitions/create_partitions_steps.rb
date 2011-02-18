@@ -56,7 +56,7 @@ Then /^the list of partitions should be:$/ do |table|
   
   hashes = table.hashes
   assert_equal(hashes.length, partitions.length)
-  for i in 0 .. hashes.length
+  for i in 0 .. hashes.length - 1
     row = hashes[i]
     partition = partitions[i]
     assert_equal(row['start'].to_i, partition.lba_start, "wrong lba_start")

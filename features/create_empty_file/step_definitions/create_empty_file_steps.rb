@@ -10,7 +10,7 @@ end
 
 After do
   if (!@path.nil?)
-    File.delete(@path)
+  #  File.delete(@path)
   end
 end
 

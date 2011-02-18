@@ -44,9 +44,9 @@ class Partition
   def read_extended(file)
     @partitions = []
     offset = lba_start * 512
-    file.seek(offset)
     
     begin
+      file.seek(offset)
       ebr = file.read(512)
       if (ebr.nil? || ebr.length != 512)
         raise "Problem lba_start = #{lba_start}, ebr = #{ebr.nil?}, offset = #{file.pos}"
@@ -57,9 +57,28 @@ class Partition
       next_ebr = Partition.from_b(ebr[462, 16])
       if (!next_ebr.empty?)
         offset = (next_ebr.lba_start + lba_start) * 512
-        file.seek(offset)
       end
     end while !next_ebr.empty?
+  end
+  
+  def write_extended(file)
+    offset = lba_start * 512
+    
+    for logical in partitions
+      ebr = create_ebr
+      
+      ebr[446, 16] = logical.to_b
+      ebr[462, 16] = "\0" * 16
+      file.seek(offset)
+      file.write(ebr)
+    end
+  end
+  
+  # Creates a new, empty EBR
+  def create_ebr
+    ebr = "\0" * 512
+    ebr[510,2] = [ 0xAA55 ].pack("v")
+    ebr
   end
   
   def to_s

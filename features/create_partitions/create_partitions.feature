@@ -25,3 +25,4 @@ Then the list of partitions should be:
 | kind     | start | end |
 | extended | 64    | 999 |
 | logical  | 64    | 511 |
+

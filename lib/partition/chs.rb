@@ -7,9 +7,9 @@ class CHS
       @head = 254
       @sector = 63
     else
+      @cylinder = ((bytes[1] & 0xc0) << 2) | bytes[2]
       @head = bytes[0]
       @sector = bytes[1] & 0x3f
-      @cylinder = ((bytes[1] & 0xc0) << 2) | bytes[2]
     end
   end
   

@@ -39,18 +39,11 @@ class PartitionTable
     end
     
     overwrite_partitions(file, mbr)
-  end
-  
-  def extended
-    @partitions.each do |p|
-      if (!p.nil? && p.extended?)
-        return p
-      end
+    if (extended)
+      extended.write_extended(file)
     end
-    nil
   end
-  
-  
+ 
   # Creates a new, empty MBR
   def create_mbr
     mbr = "\0" * 512
@@ -86,6 +79,15 @@ class PartitionTable
     if (@partitions.select {|p| !p.nil? && p.extended? }.length > 1)
       raise "There is more than 1 extended partition"
     end
+  end
+
+  def extended
+    @partitions.each do |p|
+      if (!p.nil? && p.extended?)
+        return p
+      end
+    end
+    nil
   end
   
   def read_mbr(file)
