@@ -16,4 +16,4 @@ Examples:
 | tmp/test123 | 1024 |
 | tmp/test123 | 1 |
 | tmp/test123 | 5 |
-| tmp/test123 | 1000000000 |
+| tmp/test123 | 100000000 |
