@@ -55,7 +55,7 @@ Then /^the list of partitions should be:$/ do |table|
   end
   
   hashes = table.hashes
-  assert_equal(hashes.length, partitions.length)
+  assert_equal(hashes.length, partitions.length, "Number of partitions")
   for i in 0 .. hashes.length - 1
     row = hashes[i]
     partition = partitions[i]

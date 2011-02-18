@@ -11,8 +11,20 @@ And the following partitions to create:
 | primary  | 64    | 511 |
 When I ask to create a fresh partition table
 Then the list of partitions should be:
-| kind    | start | end |
-| primary | 64    | 511 |
+| kind     | start | end |
+| primary  | 64    | 511 |
+
+Scenario: Create two primary partitions
+Given an empty file tmp/partition.img with size 1024 sectors
+And the following partitions to create:
+| kind     | start | end |
+| primary  | 64    | 511 |
+| primary  | 512   | 999 |
+When I ask to create a fresh partition table
+Then the list of partitions should be:
+| kind     | start | end |
+| primary  | 64    | 511 |
+| primary  | 512   | 999 |
 
 Scenario: Create single extended partition with one logical partition
 Given an empty file tmp/partition.img with size 1024 sectors
@@ -26,3 +38,16 @@ Then the list of partitions should be:
 | extended | 64    | 999 |
 | logical  | 64    | 511 |
 
+Scenario: Create single extended partition with two logical partitions
+Given an empty file tmp/partition.img with size 1024 sectors
+And the following partitions to create:
+| kind     | start | end |
+| extended | 64    | 999 |
+| logical  | 64    | 511 |
+| logical  | 576   | 900 |
+When I ask to create a fresh partition table
+Then the list of partitions should be:
+| kind     | start | end |
+| extended | 64    | 999 |
+| logical  | 64    | 511 |
+| logical  | 576   | 900 |

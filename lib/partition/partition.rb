@@ -64,14 +64,35 @@ class Partition
   def write_extended(file)
     offset = lba_start * 512
     
-    for logical in partitions
-      ebr = create_ebr
-      
-      ebr[446, 16] = logical.to_b
-      ebr[462, 16] = "\0" * 16
+    for i in 0 .. partitions.length - 1
       file.seek(offset)
+      logical = partitions[i]
+      ebr = create_ebr
+      ebr[446, 16] = logical.to_b
+      if (i + 1 < partitions.length)
+        next_logical = partitions[i + 1]
+        logical_lba_end = logical.lba_start + logical.lba_length - 1
+        if (next_logical.lba_start <= logical_lba_end)
+          raise "No space for additional EBR between logical partitions"
+        end
+        ebr[462, 16] = create_ebr_pointer(logical_lba_end + 1, next_logical)
+        offset = (lba_start + logical_lba_end + 1) * 512
+      else            
+        ebr[462, 16] = "\0" * 16
+      end
       file.write(ebr)
     end
+  end
+  
+  def create_ebr_pointer(ebr_lba, logical)
+    bytes = "\0" * 16
+    bytes[0] = 0 # status
+    bytes[1,3] = CHS.new.to_b
+    bytes[4] = 0x05 # extended
+    bytes[5,3] = CHS.new.to_b
+    bytes[8,4] = [ebr_lba].pack("V")
+    bytes[12,4] = [logical.lba_start + logical.lba_length - ebr_lba].pack("V")
+    bytes
   end
   
   # Creates a new, empty EBR
@@ -82,7 +103,7 @@ class Partition
   end
   
   def to_s
-    s = "Partition Type #{@type} status #{@status} lba_start #{@lba_start} end_lba #{@lba_length} chs_start [#{@chs_start}] chs_end [#{@chs_end}]"
+    s = "Partition Type #{@type} status #{@status} lba_start #{@lba_start} lba_length #{@lba_length} chs_start [#{@chs_start}] chs_end [#{@chs_end}]"
     if (extended?)
       partitions.each {|p| s << "\n\t %s" % p}
     end
