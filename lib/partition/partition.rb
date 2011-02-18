@@ -69,7 +69,6 @@ class Partition
       if (!next_ebr.is_empty?)
         offset = (next_ebr.lba_start + lba_start) * 512
         file.seek(offset)
-        # puts "Next EBR offset = %d" % offset
       end
     end while !next_ebr.is_empty?
   end
@@ -84,9 +83,16 @@ class Partition
 end
 
 class PartitionTable
-  attr_accessor :partitions
+  attr_accessor :partitions, :new_table
+  
   def self.read(file)
     PartitionTable.new.read(file)  
+  end
+  
+  def self.new_table()
+    p = PartitionTable.new
+    p.new_table = true
+    p
   end
  
   def read(file)
@@ -108,10 +114,27 @@ class PartitionTable
  
   # Dangerous! Don't allow people to write to block devices until they turn on a certain flag/option or something
   def write(file)
+    if (@new_table)
+      mbr = create_mbr
+    else
+      mbr = read_mbr(file)
+    end
+    
+    overwrite_partitions(file, mbr)
+  end
+  
+  # Creates a new, empty MBR
+  def create_mbr
+    mbr = "\0" * 512
+    mbr[510,2] = [ 0xAA55 ].pack("v")
+    mbr
+  end
+  
+  # Needs an existing MBR - overwrite the partitions on it
+  # Dangerous! Don't allow people to write to block devices until they turn on a certain flag/option or something
+  def overwrite_partitions(file, mbr)
     sanity_check
-    mbr = read_mbr(file)
     update_partitions(mbr)
-    puts "Size of MBR: %d" % mbr.length
     file.seek(0)
     file.write(mbr)
   end
