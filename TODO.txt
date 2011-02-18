@@ -1,0 +1,3 @@
+Higher-level partitioning (just list the partitions that you want and get the numbers in return, including aligning on boundaries)
+GUID partition tables
+kpartx, possibly copy block devices, debootstrap, apt, grub

@@ -1,17 +1,17 @@
 
-class Partition
+class MbrPartition
   # Takes 16 bytes of MS-DOS primary partition information
   attr_accessor :status, :type, :lba_start, :lba_length, :chs_start, :chs_end, :partitions, :parent
   
   def self.create(type, lba_start, lba_length)
-    p = Partition.new
+    p = MbrPartition.new
     p.type, p.lba_start, p.lba_length = type, lba_start, lba_length
     p.status, p.chs_start, p.chs_end, p.partitions = 0, CHS.from_lba(lba_start), CHS.from_lba(lba_start + lba_length - 1), []
     p
   end
   
   def self.from_b(bytes)
-    p = Partition.new
+    p = MbrPartition.new
     
     p.status = bytes[0]
     p.chs_start = CHS.from_b(bytes[1,3])
@@ -51,10 +51,10 @@ class Partition
       if (ebr.nil? || ebr.length != 512)
         raise "Problem lba_start = #{lba_start}, ebr = #{ebr.nil?}, offset = #{file.pos}"
       end
-      logical = Partition.from_b(ebr[446, 16])
+      logical = MbrPartition.from_b(ebr[446, 16])
       logical.parent = self
       @partitions.push(logical)
-      next_ebr = Partition.from_b(ebr[462, 16])
+      next_ebr = MbrPartition.from_b(ebr[462, 16])
       if (!next_ebr.empty?)
         offset = (next_ebr.lba_start + lba_start) * 512
       end
@@ -67,7 +67,7 @@ class Partition
     for i in 0 .. partitions.length - 1
       file.seek(offset)
       logical = partitions[i]
-      ebr = create_ebr
+      ebr = MbrPartitionTable.create_mbr
       ebr[446, 16] = logical.to_b
       if (i + 1 < partitions.length)
         next_logical = partitions[i + 1]
@@ -93,15 +93,8 @@ class Partition
     bytes
   end
   
-  # Creates a new, empty EBR
-  def create_ebr
-    ebr = "\0" * 512
-    ebr[510,2] = [ 0xAA55 ].pack("v")
-    ebr
-  end
-  
   def to_s
-    s = "Partition Type #{@type} status #{@status} lba_start #{@lba_start} lba_length #{@lba_length} " +
+    s = "MbrPartition Type #{@type} status #{@status} lba_start #{@lba_start} lba_length #{@lba_length} " +
         "chs_start [#{@chs_start}] chs_end [#{@chs_end}]"
     if (extended?)
       partitions.each {|p| s << "\n\t %s" % p}

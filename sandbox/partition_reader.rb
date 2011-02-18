@@ -4,7 +4,7 @@ require "partition"
 
 path = "/Users/ebolwidt/DevOps/VMs/Shared/my.img"
 file = File.new(path, "rb+")
-pt = PartitionTable.read(file)
+pt = MbrPartitionTable.read(file)
 for p in pt.partitions
   puts("%s" % p)
 end

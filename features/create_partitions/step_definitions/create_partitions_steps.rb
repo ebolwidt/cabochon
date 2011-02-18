@@ -23,20 +23,20 @@ Given /^the following partitions to create:$/ do |table|
     length_sectors = end_sector - start_sector + 1
     case row['kind']
       when 'primary'
-        p = Partition.create(0x83, start_sector, length_sectors)
+        p = MbrPartition.create(0x83, start_sector, length_sectors)
         @partitions.push(p)
       when 'extended'
-        @extended = p = Partition.create(0x0f, start_sector, length_sectors)
+        @extended = p = MbrPartition.create(0x0f, start_sector, length_sectors)
         @partitions.push(p)
       when 'logical'
-        p = Partition.create(0x83, start_sector, length_sectors)
+        p = MbrPartition.create(0x83, start_sector, length_sectors)
         @extended.partitions.push(p)
     end    
   end
 end
 
 When /^I ask to create a fresh partition table$/ do
-  partition_table = PartitionTable.new_table
+  partition_table = MbrPartitionTable.new_table
   partition_table.partitions = @partitions
   File.open(@path, "rb+") do |f|
     partition_table.write(f)
@@ -47,7 +47,7 @@ Then /^the list of partitions should be:$/ do |table|
   # table is a Cucumber::Ast::Table
   partition_table = nil
   File.open(@path, "rb+") do |f|
-    partition_table = PartitionTable.read(f)
+    partition_table = MbrPartitionTable.read(f)
   end
   partitions = partition_table.partitions.select { |p| !p.nil? }
   if (!partition_table.extended.nil?)

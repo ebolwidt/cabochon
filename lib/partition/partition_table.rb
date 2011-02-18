@@ -1,13 +1,13 @@
 
-class PartitionTable
+class MbrPartitionTable
   attr_accessor :partitions, :new_table, :disk_signature
   
   def self.read(file)
-    PartitionTable.new.read(file)  
+    MbrPartitionTable.new.read(file)  
   end
   
   def self.new_table()
-    p = PartitionTable.new
+    p = MbrPartitionTable.new
     p.new_table = true
     p.disk_signature = rand(1<<32) & 0xffffffff
     p.partitions = []
@@ -19,7 +19,7 @@ class PartitionTable
     @disk_signature = mbr[440,4].unpack("V")
     @partitions = []
     for i in 0 .. 3
-      partition = Partition.from_b(mbr[446 + i * 16,16])
+      partition = MbrPartition.from_b(mbr[446 + i * 16,16])
       if (partition.extended?)
         partition.read_extended(file)
       end
@@ -51,7 +51,6 @@ class PartitionTable
   # Creates a new, empty MBR
   def create_mbr
     mbr = "\0" * 512
-    
     mbr[510,2] = [ 0xAA55 ].pack("v")
     mbr
   end
