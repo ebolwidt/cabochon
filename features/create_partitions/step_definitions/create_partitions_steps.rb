@@ -59,16 +59,16 @@ Then /^the list of partitions should be:$/ do |table|
   for i in 0 .. hashes.length - 1
     row = hashes[i]
     partition = partitions[i]
-    assert_equal(row['start'].to_i, partition.lba_start, "wrong lba_start")
-    assert_equal(row['end'].to_i, partition.lba_length + partition.lba_start - 1, "wrong lba_length")
+    assert_equal(row['start'].to_i, partition.lba_start, "wrong lba_start for entry #{i}")
+    assert_equal(row['end'].to_i, partition.lba_length + partition.lba_start - 1, "wrong lba_length for entry #{i}")
     case row['kind']
       when 'primary'
-        assert_equal(0x83, partition.type, "incorrect partition type for primary")
+        assert_equal(0x83, partition.type, "incorrect partition type for primary for entry #{i}")
       when 'extended'
-        assert_equal(0x0f, partition.type, "incorrect partition type for extended")
+        assert_equal(0x0f, partition.type, "incorrect partition type for extended for entry #{i}")
       when 'logical'
-        assert_equal(0x83, partition.type, "incorrect partition type for logical")
-        assert_not_nil(partition.parent, "not a logical partition")
+        assert_equal(0x83, partition.type, "incorrect partition type for logical for entry #{i}")
+        assert_not_nil(partition.parent, "not a logical partition for entry #{i}")
     end
   end
 

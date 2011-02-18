@@ -6,7 +6,7 @@ class Partition
   def self.create(type, lba_start, lba_length)
     p = Partition.new
     p.type, p.lba_start, p.lba_length = type, lba_start, lba_length
-    p.status, p.chs_start, p.chs_end, p.partitions = 0, CHS.new, CHS.new, []
+    p.status, p.chs_start, p.chs_end, p.partitions = 0, CHS.from_lba(lba_start), CHS.from_lba(lba_start + lba_length - 1), []
     p
   end
   
@@ -14,9 +14,9 @@ class Partition
     p = Partition.new
     
     p.status = bytes[0]
-    p.chs_start = CHS.new(bytes[1,3])
+    p.chs_start = CHS.from_b(bytes[1,3])
     p.type = bytes[4]
-    p.chs_end = CHS.new(bytes[5,3])
+    p.chs_end = CHS.from_b(bytes[5,3])
     p.lba_start = bytes[8,4].unpack("V")[0]
     p.lba_length = bytes[12,4].unpack("V")[0]
     p
@@ -85,13 +85,14 @@ class Partition
   end
   
   def create_ebr_pointer(ebr_lba, logical)
+    ebr_lba_length = logical.lba_start + logical.lba_length - ebr_lba
     bytes = "\0" * 16
     bytes[0] = 0 # status
-    bytes[1,3] = CHS.new.to_b
+    bytes[1,3] = CHS.from_lba(ebr_lba).to_b
     bytes[4] = 0x05 # extended
-    bytes[5,3] = CHS.new.to_b
+    bytes[5,3] = CHS.from_lba(ebr_lba + ebr_lba_length - 1).to_b
     bytes[8,4] = [ebr_lba].pack("V")
-    bytes[12,4] = [logical.lba_start + logical.lba_length - ebr_lba].pack("V")
+    bytes[12,4] = [ebr_lba_length].pack("V")
     bytes
   end
   
@@ -103,7 +104,8 @@ class Partition
   end
   
   def to_s
-    s = "Partition Type #{@type} status #{@status} lba_start #{@lba_start} lba_length #{@lba_length} chs_start [#{@chs_start}] chs_end [#{@chs_end}]"
+    s = "Partition Type #{@type} status #{@status} lba_start #{@lba_start} lba_length #{@lba_length} " +
+        "chs_start [#{@chs_start}] chs_end [#{@chs_end}]"
     if (extended?)
       partitions.each {|p| s << "\n\t %s" % p}
     end

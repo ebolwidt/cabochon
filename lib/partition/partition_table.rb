@@ -65,9 +65,7 @@ class PartitionTable
       if (partitions.length > i && !partitions[i].nil? && !partitions[i].empty?)
         mbr[446 + i * 16, 16] = partitions[i].to_b
       else
-        for o in 0 .. 15
-          mbr[446 + i * 16 + o ] = 0
-        end
+        mbr[446 + i * 16, 16] = "\0" * 16
       end
     end
   end
