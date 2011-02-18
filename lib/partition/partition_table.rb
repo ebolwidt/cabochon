@@ -1,6 +1,6 @@
 
 class PartitionTable
-  attr_accessor :partitions, :new_table
+  attr_accessor :partitions, :new_table, :disk_signature
   
   def self.read(file)
     PartitionTable.new.read(file)  
@@ -9,12 +9,14 @@ class PartitionTable
   def self.new_table()
     p = PartitionTable.new
     p.new_table = true
+    p.disk_signature = rand(1<<32) & 0xffffffff
     p.partitions = []
     p
   end
  
   def read(file)
     mbr = read_mbr(file)
+    @disk_signature = mbr[440,4].unpack("V")
     @partitions = []
     for i in 0 .. 3
       partition = Partition.from_b(mbr[446 + i * 16,16])
@@ -38,6 +40,8 @@ class PartitionTable
       mbr = read_mbr(file)
     end
     
+    mbr[440,4] = [disk_signature].pack("V")
+    
     overwrite_partitions(file, mbr)
     if (extended)
       extended.write_extended(file)
@@ -47,6 +51,7 @@ class PartitionTable
   # Creates a new, empty MBR
   def create_mbr
     mbr = "\0" * 512
+    
     mbr[510,2] = [ 0xAA55 ].pack("v")
     mbr
   end
@@ -94,8 +99,8 @@ class PartitionTable
     end
     file.seek(0)
     mbr = file.read(512)
-    signature = mbr[510,2].unpack("v")[0]
-    if (signature != 0xAA55)
+    mbr_signature = mbr[510,2].unpack("v")[0]
+    if (mbr_signature != 0xAA55)
       raise "Invalid MBR signature for MS-DOS disklabel: %x" % signature
     end
     mbr
