@@ -23,11 +23,21 @@ class GuidPartition
     p.lba_start = bytes[32,8].unpack("Q")[0]
     p.lba_end = bytes[40,8].unpack("Q")[0]
     p.attributes = bytes[48,8].unpack("Q")[0]
-    p.name = bytes[56, 72]
-    p.name = Iconv.iconv("UTF-8", "UTF-16LE", p.name).first
+    p.name = GuidPartition.decode_name(bytes[56, 72])
     p
   end
 
+  def self.decode_name(bytes)
+    (bytes.length / 2 - 1).downto(0) do |i|
+      if (bytes[i*2] != 0 || bytes[i*2+1] != 0)
+        bytes = bytes[0, i * 2 + 2]
+        break
+      end
+    end
+    
+    Iconv.iconv("UTF-8", "UTF-16LE", bytes).first
+  end
+  
   def empty?
     type_guid.nil? || type_guid.nil_uuid?  
   end

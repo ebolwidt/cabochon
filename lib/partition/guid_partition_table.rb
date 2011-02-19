@@ -42,7 +42,7 @@ class GuidPartitionTable
     
     
     file.seek(entry_start_lba * 512)
-    for i in 0 .. num_entries - 1
+    0.upto(num_entries - 1) do
       entry_bytes = file.read(entry_length)
       partition = GuidPartition.from_b(entry_bytes)
       @partitions.push(partition)
@@ -58,6 +58,10 @@ class GuidPartitionTable
     header = file.read(512)
     
     header
+  end
+  
+  def used_partitions
+    partitions.reject { |p| p.empty? }
   end
   
   def to_s
