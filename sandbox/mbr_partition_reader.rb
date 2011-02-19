@@ -1,6 +1,6 @@
 $:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 
-require "partition"
+require 'partition'
 
 path = "/Users/ebolwidt/DevOps/VMs/Shared/my.img"
 file = File.new(path, "rb+")
