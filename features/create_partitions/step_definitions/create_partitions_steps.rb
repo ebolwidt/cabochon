@@ -1,4 +1,10 @@
 # encoding: utf-8
+puts("----")
+puts($:)
+puts("----")
+require 'uuid'
+puts(UUID.instance_methods.sort)
+puts(UUID.new.generate)
 require 'test/unit/assertions'
 World(Test::Unit::Assertions)
 require 'cucumber/formatter/unicode'
