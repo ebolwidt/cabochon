@@ -102,9 +102,15 @@ class GuidPartitionTable
   end
   
   def create_protective_mbr(disk_sectors)
-    # TODO: really implement
-    mbr = 0.chr * 512
-    mbr
+    mpt = MbrPartitionTable.new_table
+    # Create a partition that covers the entire disk, of type 0xEE
+    if (disk_sectors > (1 << 32))
+      # If the disk is larger than 2Tib, then the MBR can't handle it and will protect only the first 2Tb
+      disk_sectors = 1 << 32
+    end
+    mpartition = MbrPartition.create(0xEE, 1, disk_sectors - 1) 
+    mpt.partitions.push(mpartition)
+    mpt.to_b
   end
   
   # Creates partition entries in memory

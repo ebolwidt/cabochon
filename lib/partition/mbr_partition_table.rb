@@ -13,7 +13,7 @@ class MbrPartitionTable
     p.partitions = []
     p
   end
- 
+  
   def read(file)
     mbr = read_mbr(file)
     @disk_signature = mbr[440,4].unpack("V")
@@ -31,23 +31,34 @@ class MbrPartitionTable
     end
     self
   end
- 
+  
+  # Convert to bytes as if this was a new MBR
+  def to_b
+    mbr = MbrPartitionTable.create_mbr
+    update_mbr(mbr)
+    mbr
+  end
+  
   # Dangerous! Don't allow people to write to block devices until they turn on a certain flag/option or something
   def write(file)
+    sanity_check
+    
     if (@new_table)
       mbr = MbrPartitionTable.create_mbr
     else
       mbr = read_mbr(file)
     end
     
-    mbr[440,4] = [disk_signature].pack("V")
+    update_mbr(mbr)
     
-    overwrite_partitions(file, mbr)
+    file.seek(0)
+    file.write(mbr)
+    
     if (extended)
       extended.write_extended(file)
     end
   end
- 
+  
   # Creates a new, empty MBR
   def self.create_mbr
     mbr = "\0" * 512
@@ -55,16 +66,8 @@ class MbrPartitionTable
     mbr
   end
   
-  # Needs an existing MBR - overwrite the partitions on it
-  # Dangerous! Don't allow people to write to block devices until they turn on a certain flag/option or something
-  def overwrite_partitions(file, mbr)
-    sanity_check
-    update_partitions(mbr)
-    file.seek(0)
-    file.write(mbr)
-  end
-  
-  def update_partitions(mbr)
+  def update_mbr(mbr)
+    mbr[440,4] = [disk_signature].pack("V")
     for i in 0 .. 3
       if (partitions.length > i && !partitions[i].nil? && !partitions[i].empty?)
         mbr[446 + i * 16, 16] = partitions[i].to_b
@@ -82,7 +85,7 @@ class MbrPartitionTable
       raise "There is more than 1 extended partition"
     end
   end
-
+  
   def extended
     @partitions.each do |p|
       if (!p.nil? && p.extended?)
@@ -100,7 +103,7 @@ class MbrPartitionTable
     mbr = file.read(512)
     mbr_signature = mbr[510,2].unpack("v")[0]
     if (mbr_signature != 0xAA55)
-      raise "Invalid MBR signature for MS-DOS disklabel: %x" % signature
+      raise "Invalid MBR signature for MS-DOS disklabel: #{mbr_signature}"
     end
     mbr
   end
