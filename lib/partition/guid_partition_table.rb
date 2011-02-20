@@ -34,6 +34,11 @@ class GuidPartitionTable
     GuidPartitionTable.new.read(file)  
   end
   
+  def self.read_backup(file)
+    disk_sectors = file.stat.size / 512
+    GuidPartitionTable.new.read(file, disk_sectors - 1)
+  end
+  
   def self.new_table()
     p = GuidPartitionTable.new
     p.new_table = true
@@ -42,7 +47,7 @@ class GuidPartitionTable
     p
   end
   
-  def read(file)
+  def read(file, lba_location = 1)
     @partitions = []
     header = read_header(file)
     @disk_guid = UUIDTools::UUID.parse_raw_le(header[56,16])
@@ -63,7 +68,6 @@ class GuidPartitionTable
   def write(file)
     if (@new_table)
       disk_sectors = file.stat.size / 512
-      puts("Disk sectors: #{disk_sectors}")
       mbr = create_protective_mbr(disk_sectors)
       file.seek(0)
       file.write(mbr)
