@@ -1,0 +1,13 @@
+apt-get install ruby
+# ruby-dev is necessary to install gem json (part of gem cucumber)
+# so basically ruby-dev is always necessary. It contains mkmf.rb
+apt-get install ruby1.8-dev
+apt-get install rubygems
+gem install rake
+apt-get install rake #gem install rake didn't make it available as a command?
+gem install gherkin
+gem install cucumber
+gem install rspec # TODO: phase out
+
+gem install uuidtools
+
