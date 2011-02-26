@@ -10,7 +10,6 @@ gem install cucumber
 gem install rspec # TODO: phase out
 
 gem install uuidtools
-gem install pipe-run
 
 # Extra Linux tools for the operation of the tool
 apt-get install kpartx

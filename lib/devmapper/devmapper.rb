@@ -1,6 +1,4 @@
 
-require 'pipe-run'
-
 module DevMapper
   @kpartx_path = "/sbin/kpartx"
   @hdiutil_path = "/usr/bin/hdiutil"
@@ -19,19 +17,7 @@ module DevMapper
       "DevMapper::Mapping file=#{@file.path} device=#{@device} partitions_devices=[#{@partition_devices.join(', ')}]"
     end
   end
-  
-  # Check for availability of kpartx and hditool (MacOS) and select the right one
-  def self.invoke_kpartx_or_hdiutil(func_kpartx, func_hdiutil, *args)
-    if (File.exist?(@kpartx_path))
-      func_kpartx.call(args)
-    elsif (File.exist?(@hdiutil_path))
-      func_hdiutil.call(args)
-    else
-      raise "kpartx and hdiutil not found"
-    end
-  end
-  
-  
+
   # Maps the partitions in the image file to devices
   # Returns an array with the devices names for each partition
   def self.map_partitions_to_devices(file)
@@ -45,9 +31,8 @@ module DevMapper
     invoke_kpartx_or_hdiutil(proc { |args| unmap_partitions_to_devices_kpartx(*args) }, proc { |args| unmap_partitions_to_devices_hdiutil(*args) }, mapping)
   end
   
-  # TODO: pass arguments to kpartx one by one instead of one string; now we can't pass file names with spaces in them
   def self.map_partitions_to_devices_kpartx(file)
-    output = Pipe.run("#{@kpartx_path} #{file.path}")
+    output = fork_exec_get_output(@kpartx_path, file.path) 
     mapping = Mapping.new(file)
     
     output.scan /^(\S+)\s*:\s*\d+\s+\d+\s+(\S+)\s+\d+$/ do |m|
@@ -57,13 +42,13 @@ module DevMapper
     mapping
   end
   
+  
   def self.unmap_partitions_to_devices_kpartx(mapping)
-    output = Pipe.run("#{@kpartx_path} -d #{mapping.device}")
-    puts(output)
+    fork_exec_no_output(@kpartx_path, "-d", mapping.device)
   end
   
   def self.map_partitions_to_devices_hdiutil(file)
-    output = Pipe.run("#{@hdiutil_path} attach -nomount #{file.path}")
+    output = fork_exec_get_output(@hdiutil_path, "attach", "-nomount", file.path)
     mapping = Mapping.new(file)
     output.scan /^(\S+)\s*/ do |m|
       mapping.partition_devices.push($1)
@@ -73,7 +58,40 @@ module DevMapper
   end
   
   def self.unmap_partitions_to_devices_hdiutil(mapping)
-    output = Pipe.run("#{@hdiutil_path} detach #{mapping.device}")
-    puts(output)
+    fork_exec_no_output(@hdiutil_path, "detach", mapping.device)
+  end
+  
+  private
+  
+  def self.fork_exec_get_output(*args)
+    output = nil
+    IO.popen("-") do |f| 
+      if (f.nil?)
+        Kernel.exec(*args) 
+      else 
+        output = f.read
+      end
+    end
+    output
+  end
+  
+  def self.fork_exec_no_output(*args)
+    # A way to send output to the bitbucket
+    IO.popen("-") do |f| 
+      if (f.nil?)
+        Kernel.exec(*args)
+      end
+    end
+  end
+  
+  # Check for availability of kpartx and hditool (MacOS) and select the right one
+  def self.invoke_kpartx_or_hdiutil(func_kpartx, func_hdiutil, *args)
+    if (File.exist?(@kpartx_path))
+      func_kpartx.call(args)
+    elsif (File.exist?(@hdiutil_path))
+      func_hdiutil.call(args)
+    else
+      raise "kpartx and hdiutil not found"
+    end
   end
 end
