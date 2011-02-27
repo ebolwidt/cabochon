@@ -27,17 +27,5 @@ module NewFs
       end
     end
   end
-  
-  private
-  
-  # Check for availability of kpartx and hditool (MacOS) and select the right one
-  def self.invoke_kpartx_or_hdiutil(func_kpartx, func_hdiutil, *args)
-    if (File.exist?(@kpartx_path))
-      func_kpartx.call(args)
-    elsif (File.exist?(@hdiutil_path))
-      func_hdiutil.call(args)
-    else
-      raise "kpartx and hdiutil not found"
-    end
-  end
+
 end

@@ -1,6 +1,16 @@
 class File
   attr_accessor :debug
   
+  def self.ensure_dir(path)
+    if (!File.directory? path)
+      if (File.exist? path)
+        raise "File #{path} exists but is not a directory"
+      end
+      # TODO: recursively create parts
+      Dir.mkdir(path)
+    end
+  end
+  
   def seek_sector(sector_offset, purpose = nil)
     if (!sector_offset.nil?)
       if (debug)

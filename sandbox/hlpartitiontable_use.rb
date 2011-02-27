@@ -2,6 +2,7 @@ $:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 
 require 'rubygems'
 require 'hl-partition.rb'
+require 'partition/file_patch.rb'
 
 pt = PartitionTable.new
 pt.type = "mbr"
@@ -28,5 +29,10 @@ puts("Partitions mapped to devices")
 pt.newfs_partitions
 
 puts("Partitions newfs-ed")
+
+File.ensure_dir("tmp/mountpoint")
+pt.mount("tmp/mountpoint")
+
+pt.unmount
 
 #pt.unmap_partitions_to_devices

@@ -4,6 +4,8 @@ require 'partition'
 require 'imgfile/imgfile.rb'
 require 'devmapper/devmapper.rb'
 require 'newfs/newfs.rb'
+require 'mount/mount.rb'
+require 'partition/file_patch.rb'
 
 # High-level partitions can be created on both MBR and GUID partition tables
 # They know how to lay themselves out on the disk
@@ -89,11 +91,49 @@ class PartitionTable
   
   attr_accessor :path
   
+  # Mount path for the entire image
+  attr_accessor :mount_path
+  
   def initialize
     @partitions = []
     @type = "gpt"
     @gpt_table_sectors = 34
     @mbr_table_sectors = 1
+  end
+  
+  def root_partition
+    @partitions.each do |p|
+      if (!p.nil? && p.mount_point == '/')
+        return p
+      end
+    end
+    nil  
+  end
+  
+  # Mount the root of the file system to mount_path
+  def mount(mount_path)
+    @mount_path = mount_path
+    
+    root = root_partition
+    if (root.nil?)
+      raise "No root partition"
+    end
+    Mount::mount(root.device, mount_path)
+    root.mount_path = mount_path
+    @partitions.each do |partition|
+      partition_mount_path = mount_path + "/" + partition.mount_point
+      File.ensure_dir(partition_mount_path)
+      if (root != partition)
+        Mount::mount(partition.device, partition_mount_path)
+        partition.mount_path = partition_mount_path
+      end
+    end
+  end
+  
+  def unmount
+    @partitions.reverse.each do |partition|
+      Mount::unmount(partition.mount_path)
+    end
   end
   
   def to_fstab
