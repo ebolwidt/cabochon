@@ -3,7 +3,7 @@ module KernelExt
   
   def self.fork_exec(args, input)
     output = nil
-    f = IO.popen("-")
+    f = IO.popen("-", "rb+")
     
     if (f.nil?)
       if (args[0].is_a? Array)
@@ -17,6 +17,7 @@ module KernelExt
       Kernel.exec(*args)
     else 
       f.write(input)
+      f.close_write
       output = f.read
     end
     output

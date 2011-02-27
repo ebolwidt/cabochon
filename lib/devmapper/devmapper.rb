@@ -42,7 +42,8 @@ module DevMapper
     if (file.is_a? File)
       file = file.path
     end  
-    KernelExt::fork_exec_get_output(@losetup_path, "--show", "-f", file)
+    line = KernelExt::fork_exec_get_output(@losetup_path, "--show", "-f", file)
+    line.strip
   end
   
   def self.loteardown(device)
@@ -50,11 +51,8 @@ module DevMapper
   end
   
   def self.dmsetup(device, disk)
-    if (file.is_a? File)
-      file = file.path
-    end  
-    sectors = file.stat.length / 512
-    dmsetup_in = "0 #{sectors} linear #{device} 0"
+    sectors = File.stat(device).size / 512
+    dmsetup_in = "0 #{sectors} linear #{device} 0\n"
     KernelExt::fork_exec([@dmsetup_path, "create", disk], dmsetup_in)
   end
   
@@ -70,7 +68,7 @@ module DevMapper
     loop_dev = losetup(file)
     dmsetup(loop_dev, disk)
     KernelExt::fork_exec_get_output(@kpartx_path, "-a", "/dev/mapper/" + disk)
-    get_mapping(file)
+    get_mapping("/dev/mapper/" + disk)
   end
   
   def self.get_mapping(file)
