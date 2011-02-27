@@ -50,8 +50,8 @@ module DevMapper
     KernelExt::fork_exec_get_output(@losetup_path, "-d", device)
   end
   
-  def self.dmsetup(device, disk)
-    sectors = File.stat(device).size / 512
+  def self.dmsetup(device, disk, size)
+    sectors = size / 512
     dmsetup_in = "0 #{sectors} linear #{device} 0\n"
     KernelExt::fork_exec([@dmsetup_path, "create", disk], dmsetup_in)
   end
@@ -64,9 +64,9 @@ module DevMapper
     if (file.is_a? File)
       file = file.path
     end
-    # echo "0 $[IMG_SIZE*2097152] linear $LOOP_DEV 0" | dmsetup create $DISK
+
     loop_dev = losetup(file)
-    dmsetup(loop_dev, disk)
+    dmsetup(loop_dev, disk, File.stat(file).size)
     KernelExt::fork_exec_get_output(@kpartx_path, "-a", "/dev/mapper/" + disk)
     get_mapping("/dev/mapper/" + disk)
   end
@@ -77,7 +77,6 @@ module DevMapper
     end
     output = KernelExt::fork_exec_get_output(@kpartx_path, file) 
     mapping = Mapping.new(file)
-    
     output.scan /^(\S+)\s*:\s*\d+\s+\d+\s+(\S+)\s+\d+$/ do |m|
       if (mapping.device.nil?)
         mapping.device = $2
