@@ -2,6 +2,8 @@
 
 require 'partition'
 require 'imgfile/imgfile.rb'
+require 'devmapper/devmapper.rb'
+require 'newfs/newfs.rb'
 
 # High-level partitions can be created on both MBR and GUID partition tables
 # They know how to lay themselves out on the disk
@@ -64,6 +66,17 @@ class Partition
   def to_s
     "Partition size #{size} type #{type} mount_point #{mount_point} name #{@name} fs_type #{fs_type} sector_start #{sector_start} sector_end #{sector_end}"
   end
+  
+  # Creates a new file system on this partition
+  def newfs
+    if (device.nil?)
+      raise "Partition hasn't yet been mapped to a device"
+    end
+    if (fs_type.nil?)
+      raise "No fs_type specified"
+    end
+    NewFs::newfs(device, fs_type)
+  end
 end
 
 class PartitionTable
@@ -74,6 +87,8 @@ class PartitionTable
   attr_accessor :type
   attr_accessor :gpt_table_sectors, :mbr_table_sectors
   
+  attr_accessor :path
+  
   def initialize
     @partitions = []
     @type = "gpt"
@@ -83,6 +98,31 @@ class PartitionTable
   
   def to_fstab
     
+  end
+  
+  def map_partitions_to_devices
+    if (@path.nil?)
+      raise "No path known, use create_image or set path manually"
+    end
+    @mapping = DevMapper::map_partitions_to_devices(@path)
+    if (@mapping.partition_devices.length != partitions.length)
+      DevMapper::unmap_partitions_to_devices(@mapping)
+      raise "Failed to map correctly number of partitions from devmapper (#{@mapping.partition_devices.length}) " +
+            "doesn't match partititions defined in this table (#{partitions.length})"
+    end
+    0.upto(partitions.length - 1) do |i|
+      partitions[i].device = @mapping.partition_devices[i]
+    end
+  end
+  
+  def unmap_partitions_to_devices
+    DevMapper::unmap_partitions_to_devices(@mapping)
+  end
+  
+  def newfs_partitions
+    partitions.each do |partition|
+      partition.newfs
+    end
   end
   
   def layout(align_on_multiples=4, first_sector=64)
@@ -144,9 +184,11 @@ class PartitionTable
     end
     File::create_empty(file, 512 * size)
     if (file.is_a? String)
-      file = File.open(file, "rb+") { |f| low_level_table.write(f) }
+      File.open(file, "rb+") { |f| low_level_table.write(f) }
+      @path = file
     else
       low_level_table.write(file)
+      @path = file.path
     end
   end
   

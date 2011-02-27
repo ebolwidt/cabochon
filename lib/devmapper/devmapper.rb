@@ -6,9 +6,9 @@ module DevMapper
   
   
   class Mapping
-    attr_accessor :file, :device, :partition_devices
+    attr_accessor :file, :device, :partition_devices, :block_devices
     
-    def initialize(pfile, pdevice = nil, ppartition_devices = [])
+    def initialize(pfile, pdevice = nil, ppartition_devices = [], pblock_devices = [])
       if (pfile.is_a? File)
         @file = pfile.path
       else
@@ -16,6 +16,7 @@ module DevMapper
       end
       @device = pdevice
       @partition_devices = ppartition_devices
+      @block_devices = pblock_devices
     end
     
     def to_s
@@ -37,12 +38,25 @@ module DevMapper
   end
   
   def self.map_partitions_to_devices_kpartx(file)
+    output = KernelExt::fork_exec_get_output(@kpartx_path, "-a", file.path)
     output = KernelExt::fork_exec_get_output(@kpartx_path, file.path) 
     mapping = Mapping.new(file)
     
     output.scan /^(\S+)\s*:\s*\d+\s+\d+\s+(\S+)\s+\d+$/ do |m|
-      mapping.device = $2
+      if (mapping.device.nil?)
+        mapping.device = $2
+      end
+      mapping.block_devices.push($2)
       mapping.partition_devices.push("/dev/mapper/" + $1)
+    end
+    # Some versions of kpartx generate a line for the extended partition itself. We must drop it, since it is not always generated
+    # Worse, some kpartx versions contain a bug, where the block device of a logical partition doesn't point to the extended partition but
+    # to another primary partition (number 3 when extended partition is number 4)
+    if (mapping.partition_devices.length > 4)
+      if (mapping.block_devices[3].match(/^\//))
+        mapping.partition_devices.slice!(3)
+        mapping.block_devices.slice!(3)
+      end
     end
     mapping
   end
