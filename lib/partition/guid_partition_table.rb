@@ -73,7 +73,7 @@ class GuidPartitionTable
     @entry_size = header[84,4].unpack("V")[0]
     
     
-    file.seek(entry_start_lba * 512)
+    file.seek_sector(entry_start_lba)
     0.upto(num_entries - 1) do
       entry_bytes = file.read(@entry_size)
       partition = GuidPartition.from_b(entry_bytes)
@@ -86,8 +86,7 @@ class GuidPartitionTable
     if (@new_table)
       disk_sectors = file.stat.size / 512
       mbr = create_protective_mbr(disk_sectors)
-      file.seek(0)
-      file.write(mbr)
+      file.write_sector(mbr, 0)
       
       @num_entries = DefaultNumEntries
       @entry_size = DefaultEntrySize
@@ -103,19 +102,17 @@ class GuidPartitionTable
     end
     
     # write header
-    file.seek(512)
-    file.write(header)
+    file.write_sector(header, 1)
     
     # Write partition entries
     file.write(partition_entries_to_b)
     
     # Write backup partition entries
-    file.seek(backup_entries_lba * 512)
+    file.seek_sector(backup_entries_lba)
     file.write(partition_entries_to_b)
     
     # write backup header
-    file.seek((disk_sectors - 1) * 512)
-    file.write(backup_header)
+    file.write_sector(backup_header, disk_sectors - 1)
   end
   
   def create_protective_mbr(disk_sectors)
@@ -169,8 +166,7 @@ class GuidPartitionTable
     if (file.stat.size < 1024)
       raise "Invalid disk, size smaller than 2 blocks"
     end
-    file.seek(512 * lba_location)
-    header = file.read(512)
+    header = file.read_sector(lba_location)
     if (header[0,8] != EfiSignature)
       raise "Bad Efi signature on GPT header"
     end

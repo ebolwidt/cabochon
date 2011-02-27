@@ -112,12 +112,11 @@ class PartitionTable
     mbr = MbrPartitionTable.new_table
     primaries.each do |partition|
       mbr_partition = MbrPartition.create(partition.type_mbr, partition.sector_start, partition.size)
-      partition.unique_id = guid_partition.unique_id
-      gpt.partitions.push(p)
+      mbr.partitions.push(mbr_partition)
     end
     last_sector = primaries[primaries.length - 1].sector_end + 1
     if (partitions.length > 4)
-      gpt.partitions.push(create_mbr_extended_partition(partitions[3,partitions.length - 3], last_sector))
+      mbr.partitions.push(create_mbr_extended_partition(partitions[3,partitions.length - 3], last_sector, align_on_multiples))
     end
     mbr
   end
@@ -143,7 +142,6 @@ class PartitionTable
     if (low_level_table.nil?)
       low_level_table = layout
     end
-    puts(low_level_table)
     File::create_empty(file, 512 * size)
     if (file.is_a? String)
       file = File.open(file, "rb+") { |f| low_level_table.write(f) }
@@ -178,13 +176,13 @@ class PartitionTable
     next_sector
   end
   
-  def create_mbr_extended_partition(partitions, first_sector)
+  def create_mbr_extended_partition(partitions, first_sector, gap)
     last_partition = partitions[partitions.length - 1]
-    extended_partition = MbrPartition.create(0x15, first_sector, last_partition.sector_end - first_sector + 1)
+    extended_partition = MbrPartition.create(0x0f, first_sector, last_partition.sector_end - first_sector + 1)
     partitions.each do |partition|
-      logical_partition = MbrPartition.create(0x05, partition.sector_start - first_sector, partition.size)
+      logical_partition = MbrPartition.create(partition.type_mbr, gap, partition.size)
       logical_partition.parent = extended_partition
-      extended_partition.partitions.push(logical_partitions)
+      extended_partition.partitions.push(logical_partition)
     end
     extended_partition
   end

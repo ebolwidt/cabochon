@@ -19,6 +19,13 @@
 class MbrPartitionTable
   attr_accessor :partitions, :new_table, :disk_signature
   
+  def to_s
+    s = "MbrPartitionTable"
+    partitions.each do |partition|
+      s << "\n\t#{partition}"
+    end
+    s
+  end
   def self.read(file)
     MbrPartitionTable.new.read(file)  
   end
@@ -33,7 +40,7 @@ class MbrPartitionTable
   
   def read(file)
     mbr = read_mbr(file)
-    @disk_signature = mbr[440,4].unpack("V")
+    @disk_signature = mbr[440,4].unpack("V")[0]
     @partitions = []
     for i in 0 .. 3
       partition = MbrPartition.from_b(mbr[446 + i * 16,16])
@@ -67,9 +74,8 @@ class MbrPartitionTable
     end
     
     update_mbr(mbr)
-    
-    file.seek(0)
-    file.write(mbr)
+
+    file.write_sector(mbr, 0)
     
     if (extended)
       extended.write_extended(file)
@@ -116,8 +122,7 @@ class MbrPartitionTable
     if (file.stat.size < 512)
       raise "Invalid disk, size smaller than 1 block"
     end
-    file.seek(0)
-    mbr = file.read(512)
+    mbr = file.read_sector(0)
     mbr_signature = mbr[510,2].unpack("v")[0]
     if (mbr_signature != 0xAA55)
       raise "Invalid MBR signature for MS-DOS disklabel: #{mbr_signature}"
