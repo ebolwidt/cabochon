@@ -7,6 +7,8 @@ module Mount
   @unmount_path = [ "/sbin/umount", "/bin/umount" ]
   @macos_ext2_mount_path = "/usr/local/bin/fuse-ext2"
   
+  # TODO: MacOS / Fuse doesn't support mounting a mount point inside a fuse mountpoint :-(
+  
   def self.mount(device, mount_path)
     # TODO: cleanup code
     if (!File.exist? @mkfs_linux_path)
@@ -17,6 +19,14 @@ module Mount
   end
   
   def self.unmount(mount_path)
+    KernelExt::fork_exec_get_output(@unmount_path, mount_path)
+  end
+  
+  def self.bind(path, mount_path)
+    KernelExt::fork_exec_get_output(@mount_path, "--bind", path, mount_path)
+  end
+  
+  def self.unbind(mount_path)
     KernelExt::fork_exec_get_output(@unmount_path, mount_path)
   end
 end

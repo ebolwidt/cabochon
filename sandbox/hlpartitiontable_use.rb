@@ -35,4 +35,4 @@ pt.mount("tmp/mountpoint")
 
 pt.unmount
 
-#pt.unmap_partitions_to_devices
+pt.unmap_partitions_to_devices
