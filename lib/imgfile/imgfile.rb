@@ -1,5 +1,8 @@
 class File
   def self.create_empty(path, size, sparse = true, overwrite = true)
+    if (path.is_a? File)
+      path = path.path
+    end
     if (overwrite)
       mode = "wb+"
     else
