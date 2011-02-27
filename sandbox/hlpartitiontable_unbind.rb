@@ -21,27 +21,13 @@ end
 
 pt.create_image("tmp/highlevel.img")
 
-#puts(pt)
-
-pt.map_partitions_to_devices
-
-puts("Partitions mapped to devices")
-
-pt.newfs_partitions
-
-puts("Partitions newfs-ed")
-
-File.ensure_dir("tmp/mountpoint")
-pt.mount("tmp/mountpoint")
+pt.dry_mount("tmp/mountpoint")
 
 bootstrap = Debootstrap.new
 bootstrap.root_path = pt.mount_path
 bootstrap.apt_cache_path = "tmp/apt-cache"
 
-bootstrap.bind
-bootstrap.bootstrap
 bootstrap.unbind
 
 pt.unmount
-
 pt.unmap_partitions_to_devices

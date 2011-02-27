@@ -38,8 +38,18 @@ module DevMapper
   end
   
   def self.map_partitions_to_devices_kpartx(file)
-    output = KernelExt::fork_exec_get_output(@kpartx_path, "-a", file.path)
-    output = KernelExt::fork_exec_get_output(@kpartx_path, file.path) 
+    if (file.is_a? File)
+      file = file.path
+    end
+    KernelExt::fork_exec_get_output(@kpartx_path, "-a", file)
+    get_mapping(file)
+  end
+  
+  def self.get_mapping(file)
+    if (file.is_a? File)
+      file = file.path
+    end
+    output = KernelExt::fork_exec_get_output(@kpartx_path, file) 
     mapping = Mapping.new(file)
     
     output.scan /^(\S+)\s*:\s*\d+\s+\d+\s+(\S+)\s+\d+$/ do |m|

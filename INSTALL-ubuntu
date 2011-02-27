@@ -14,3 +14,5 @@ gem install uuidtools
 # Extra Linux tools for the operation of the tool
 apt-get install kpartx
 
+apt-get install debootstrap
+

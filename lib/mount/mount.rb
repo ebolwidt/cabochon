@@ -23,6 +23,7 @@ module Mount
   end
   
   def self.bind(path, mount_path)
+    # TODO: first check if this has already been bind mounted; it is possible to do this multiple times
     KernelExt::fork_exec_get_output(@mount_path, "--bind", path, mount_path)
   end
   

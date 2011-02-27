@@ -1,3 +1,4 @@
+
 class File
   attr_accessor :debug
   
@@ -7,7 +8,7 @@ class File
         raise "File #{path} exists but is not a directory"
       end
       # TODO: recursively create parts
-      Dir.mkdir(path)
+      FileUtils::mkdir_p(path)
     end
   end
   

@@ -60,6 +60,23 @@ class PartitionTable
     end
   end
   
+  # Mount the root of the file system to mount_path
+  def dry_mount(mount_path)
+    @mount_path = mount_path
+    
+    root = root_partition
+    if (root.nil?)
+      raise "No root partition"
+    end
+    root.mount_path = mount_path
+    @partitions.each do |partition|
+      partition_mount_path = mount_path + "/" + partition.mount_point
+      if (root != partition)
+        partition.mount_path = partition_mount_path
+      end
+    end
+  end
+  
   def unmount
     @partitions.reverse.each do |partition|
       Mount::unmount(partition.mount_path)
@@ -86,6 +103,9 @@ class PartitionTable
   end
   
   def unmap_partitions_to_devices
+    if (@mapping.nil?)
+      @mapping = DevMapper::get_mapping(@path) 
+    end
     DevMapper::unmap_partitions_to_devices(@mapping)
   end
   
