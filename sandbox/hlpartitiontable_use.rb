@@ -37,9 +37,13 @@ pt.mount("tmp/mountpoint")
 bootstrap = Debootstrap.new
 bootstrap.root_path = pt.mount_path
 bootstrap.apt_cache_path = "tmp/apt-cache"
+bootstrap.apt_lib_path = "tmp/apt-lib"
 
 bootstrap.bind
 bootstrap.bootstrap
+
+exit 0
+
 bootstrap.unbind
 
 pt.unmount
