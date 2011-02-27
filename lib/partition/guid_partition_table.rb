@@ -96,7 +96,7 @@ class GuidPartitionTable
       @lba_last = backup_entries_lba - 1
       
       header = create_header(2, 1, disk_sectors - 1)
-      backup_header = create_header(backup_entries_lba, disk_sectors - 1, 2)
+      backup_header = create_header(backup_entries_lba, disk_sectors - 1, 1)
     else
       header = read_header(file)
       backup_header = read_header(file, disk_sectors - 1)
@@ -184,7 +184,7 @@ class GuidPartitionTable
   def to_s
     s = "GuidPartitionTable Disk Guid #{disk_guid}"
     partitions.each do |p|
-      s << "\n\t#{p}" unless p.empty?
+      s << "\n\t#{p}" unless p.nil? || p.empty?
     end
     s
   end

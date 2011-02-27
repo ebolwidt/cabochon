@@ -46,7 +46,7 @@ class GuidPartition
   end
   
   def empty?
-    type_guid.nil? || type_guid.nil_uuid?  
+    type_guid.nil? || type_guid.nil_uuid?
   end
   
   def to_b
