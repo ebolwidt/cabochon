@@ -59,7 +59,7 @@ module DevMapper
   end
   
   def self.dmteardown(disk)
-    KernelExt::fork_exec([@dmsetup_path, "remove", disk])
+    KernelExt::fork_exec_get_output([@dmsetup_path, "remove", disk])
   end
   
   def self.map_partitions_to_devices_kpartx(file, disk="cabochon")
