@@ -2,8 +2,9 @@ require "kernelext/kernelext.rb"
 
 module DevMapper
   @kpartx_path = "/sbin/kpartx"
+  @dmsetup_path = "/sbin/dmsetup"
   @hdiutil_path = "/usr/bin/hdiutil"
-  
+  @losetup_path = "/sbin/losetup"
   
   class Mapping
     attr_accessor :file, :device, :partition_devices, :block_devices
@@ -37,11 +38,38 @@ module DevMapper
     invoke_kpartx_or_hdiutil(proc { |args| unmap_partitions_to_devices_kpartx(*args) }, proc { |args| unmap_partitions_to_devices_hdiutil(*args) }, mapping)
   end
   
-  def self.map_partitions_to_devices_kpartx(file)
+  def self.losetup(file)
+    if (file.is_a? File)
+      file = file.path
+    end  
+    KernelExt::fork_exec_get_output(@losetup_path, "--show", "-f", file)
+  end
+  
+  def self.loteardown(device)
+    KernelExt::fork_exec_get_output(@losetup_path, "-d", device)
+  end
+  
+  def self.dmsetup(device, disk)
+    if (file.is_a? File)
+      file = file.path
+    end  
+    sectors = file.stat.length / 512
+    dmsetup_in = "0 #{sectors} linear #{device} 0"
+    KernelExt::fork_exec([@dmsetup_path, "create", disk], dmsetup_in)
+  end
+  
+  def self.dmteardown(disk)
+    KernelExt::fork_exec([@dmsetup_path, "remove", disk])
+  end
+  
+  def self.map_partitions_to_devices_kpartx(file, disk="cabochon")
     if (file.is_a? File)
       file = file.path
     end
-    KernelExt::fork_exec_get_output(@kpartx_path, "-a", file)
+    # echo "0 $[IMG_SIZE*2097152] linear $LOOP_DEV 0" | dmsetup create $DISK
+    loop_dev = losetup(file)
+    dmsetup(loop_dev, disk)
+    KernelExt::fork_exec_get_output(@kpartx_path, "-a", "/dev/mapper/" + disk)
     get_mapping(file)
   end
   
@@ -72,8 +100,12 @@ module DevMapper
   end
   
   
-  def self.unmap_partitions_to_devices_kpartx(mapping)
+  def self.unmap_partitions_to_devices_kpartx(mapping, disk="cabochon")
     KernelExt::fork_exec_no_output(@kpartx_path, "-d", mapping.device)
+    #TODO: fix, make variable, add to mapping object
+    dmteardown(disk)
+    #TODO: fix, make variable, add to mapping object
+    loteardown("/dev/loop0")
   end
   
   def self.map_partitions_to_devices_hdiutil(file)
