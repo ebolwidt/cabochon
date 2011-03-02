@@ -2,7 +2,7 @@ $:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 
 require 'rubygems'
 require 'hl-partition.rb'
-require 'partition/file_patch.rb'
+require 'file/file_patch.rb'
 require 'debootstrap/debootstrap.rb'
 
 pt = PartitionTable.new

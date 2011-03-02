@@ -1,4 +1,5 @@
-require "kernelext/kernelext.rb"
+require 'kernelext/kernelext.rb'
+require 'file/file_patch.rb'
 
 module DevMapper
   @kpartx_path = "/sbin/kpartx"
@@ -51,7 +52,7 @@ module DevMapper
   end
   
   def self.dmsetup(device, disk, size)
-    sectors = size / 512
+    sectors = File.new(device).size / 512
     dmsetup_in = "0 #{sectors} linear #{device} 0\n"
     KernelExt::fork_exec([@dmsetup_path, "create", disk], dmsetup_in)
   end
