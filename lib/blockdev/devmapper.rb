@@ -64,7 +64,7 @@ module DevMapper
     devices = Loop::devices_for(path)
     devices.each do |device|
       mapping = get_mapping(device)
-      mapping.partition_devices.each do |partition_device|
+      mapping.partition_devices.reverse.each do |partition_device|
         Mount::unmount(partition_device)
       end
     end
