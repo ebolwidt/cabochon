@@ -31,14 +31,12 @@ module DevMapper
     invoke_kpartx_or_hdiutil(proc { |args| map_partitions_to_devices_kpartx(*args) }, proc { |args| map_partitions_to_devices_hdiutil(*args) }, file)
   end
   
-  def self.unmap_partitions_to_devices(mapping)
-    invoke_kpartx_or_hdiutil(proc { |args| unmap_partitions_to_devices_kpartx(*args) }, proc { |args| unmap_partitions_to_devices_hdiutil(*args) }, mapping)
+  def self.unmap_partitions_to_devices(path)
+    invoke_kpartx_or_hdiutil(proc { |args| unmap_partitions_to_devices_kpartx(*args) }, proc { |args| unmap_partitions_to_devices_hdiutil(*args) }, path)
   end
 
   def self.get_mapping(path)
-    if (file.is_a? File)
-      file = file.path
-    end
+    path = path.path if (path.is_a? File)
     output = KernelExt::fork_exec_get_output(@kpartx_path, file) 
     mapping = Mapping.new(file)
     output.scan /^(\S+)\s*:\s*\d+\s+\d+\s+(\S+)\s+\d+$/ do |m|
@@ -88,9 +86,9 @@ module DevMapper
     mapping
   end
   
-  def self.unmap_partitions_to_devices_hdiutil(mapping)
-    KernelExt::fork_exec_no_output(@hdiutil_path, "detach", mapping.device)
-  end
+  #def self.unmap_partitions_to_devices_hdiutil(path)
+  #  KernelExt::fork_exec_no_output(@hdiutil_path, "detach", mapping.device)
+  #end
   
   # Check for availability of kpartx and hditool (MacOS) and select the right one
   def self.invoke_kpartx_or_hdiutil(func_kpartx, func_hdiutil, *args)
