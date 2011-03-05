@@ -2,10 +2,10 @@
 
 require 'partition'
 require 'imgfile/imgfile.rb'
-require 'devmapper/devmapper.rb'
+require 'blockdev/devmapper.rb'
 require 'newfs/newfs.rb'
 require 'mount/mount.rb'
-require 'partition/file_patch.rb'
+require 'file/file_patch.rb'
 
 # High-level partitions can be created on both MBR and GUID partition tables
 # They know how to lay themselves out on the disk
