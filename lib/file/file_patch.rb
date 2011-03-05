@@ -4,7 +4,7 @@ class File
 
   # Returns size of file in bytes, or of block device if it is a block device.
   def size
-    if blockdev?
+    if stat.blockdev?
       blockdev_size
     else
       stat.size
@@ -12,6 +12,9 @@ class File
   end
   
   def blockdev_size
+#    v = "\0" * 8
+    v = "01234567"
+    $stderr.puts(v.length)
     ioctl(0x80081272, v)
     v.unpack("Q")[0]
   end
