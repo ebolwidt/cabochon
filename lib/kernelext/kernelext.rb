@@ -66,7 +66,7 @@ module KernelExt
   end
   
   private
-  def self.exec_internal
+  def self.exec_internal(*args)
     if (@debug)
       $stderr.puts("Executing: #{args.join(' ')}")
     end
