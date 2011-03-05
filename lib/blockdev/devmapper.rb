@@ -59,6 +59,17 @@ module DevMapper
     mapping
   end
   
+  def self.unmount_partitions(path)
+    path = path.path if (path.is_a? File)
+    devices = Loop::devices_for(path)
+    devices.each do |device|
+      mapping = get_mapping(device)
+      mapping.partition_devices.each do |partition_device|
+        Mount::unmount(partition_device)
+      end
+    end
+  end
+  
   private
   
   def self.map_partitions_to_devices_kpartx(path)
