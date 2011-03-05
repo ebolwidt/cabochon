@@ -19,7 +19,9 @@ module Mount
   end
   
   def self.unmount(mount_path)
-    KernelExt::fork_exec_get_output(@unmount_path, mount_path)
+    if (File.exist? mount_path)
+      KernelExt::fork_exec_get_output(@unmount_path, mount_path)
+    end
   end
   
   def self.bind(path, mount_path)
@@ -28,6 +30,8 @@ module Mount
   end
   
   def self.unbind(mount_path)
-    KernelExt::fork_exec_get_output(@unmount_path, mount_path)
+    if (File.directory? mount_path)
+      KernelExt::fork_exec_get_output(@unmount_path, mount_path)
+    end
   end
 end
