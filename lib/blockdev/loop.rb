@@ -1,3 +1,6 @@
+require 'kernelext/kernelext.rb'
+require 'file/file_patch.rb'
+
 module Loop
   @losetup_path = "/sbin/losetup"
   
