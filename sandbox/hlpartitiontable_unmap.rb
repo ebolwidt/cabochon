@@ -8,4 +8,7 @@ require 'debootstrap/debootstrap.rb'
 #path = "tmp/highlevel.img"
 path = "/home/vmplanet/cabochon/tmp/highlevel.img"
 
+KernelExt::debug = true
+
+DevMapper.unmount_partitions(path)
 DevMapper.unmap_partitions_to_devices(path)
