@@ -83,7 +83,6 @@ module DevMapper
     path = path.path if (path.is_a? File)
     devices = Loop::devices_for(path)
     devices.each do |device|
-      puts(@kpartx_path, "-d", device)
       KernelExt::fork_exec_no_output(@kpartx_path, "-d", device)
       Loop::remove(device)
     end
