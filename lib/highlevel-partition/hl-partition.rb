@@ -2,7 +2,7 @@
 
 require 'partition'
 require 'imgfile/imgfile.rb'
-require 'devmapper/devmapper.rb'
+require 'blockdev/devmapper.rb'
 require 'newfs/newfs.rb'
 require 'mount/mount.rb'
 require 'file/file_patch.rb'

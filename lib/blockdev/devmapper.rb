@@ -1,5 +1,6 @@
 require 'kernelext/kernelext.rb'
 require 'file/file_patch.rb'
+require 'blockdev/loop.rb'
 
 module DevMapper
   @kpartx_path = "/sbin/kpartx"
