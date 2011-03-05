@@ -7,6 +7,7 @@ module Loop
   # Sets up loop device for file at path, returns the name of the loop device that was created
   def self.add(path, read_only = false, offset = nil, size = nil)
     path = path.path if (path.is_a? File)
+    path = File.expand_path(path)
     args = [@losetup_path, "--show"]
     if (read_only)
       args.push("--read-only")
@@ -66,6 +67,7 @@ module Loop
   
   def self.devices_for(path)
     path = path.path if (path.is_a? File)
+    path = File.expand_path(path)
     loop_devs = devices
     loop_devs.reject! { |dev| file_name_for(dev) != path }
     loop_devs
