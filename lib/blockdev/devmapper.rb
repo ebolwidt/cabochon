@@ -38,8 +38,8 @@ module DevMapper
 
   def self.get_mapping(path)
     path = path.path if (path.is_a? File)
-    output = KernelExt::fork_exec_get_output(@kpartx_path, file) 
-    mapping = Mapping.new(file)
+    output = KernelExt::fork_exec_get_output(@kpartx_path, path) 
+    mapping = Mapping.new(path)
     output.scan /^(\S+)\s*:\s*\d+\s+\d+\s+(\S+)\s+\d+$/ do |m|
       if (mapping.device.nil?)
         mapping.device = $2
@@ -57,6 +57,17 @@ module DevMapper
       end
     end
     mapping
+  end
+  
+  def self.unmount_partitions(path)
+    path = path.path if (path.is_a? File)
+    devices = Loop::devices_for(path)
+    devices.each do |device|
+      mapping = get_mapping(device)
+      mapping.partition_devices.each do |partition_device|
+        Mount::unmount(partition_device)
+      end
+    end
   end
   
   private

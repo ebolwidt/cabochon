@@ -18,7 +18,7 @@ module Loop
       args.push("--sizelimit", size)
     end
     args.push("-f", path)
-    line = KernelExt::fork_exec_get_output(args)
+    line = KernelExt::fork_exec_get_output(*args)
     line.strip
   end
   
@@ -66,7 +66,7 @@ module Loop
   
   def self.devices_for(path)
     path = path.path if (path.is_a? File)
-    loop_devs = loop_devices
+    loop_devs = devices
     loop_devs.reject! { |dev| file_name_for(dev) != path }
     loop_devs
   end
