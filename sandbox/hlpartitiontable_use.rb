@@ -42,6 +42,7 @@ bootstrap.apt_lib_path = "tmp/apt-lib"
 bootstrap.bind
 bootstrap.bootstrap
 bootstrap.apt_update
+bootstrap.apt_dist_upgrade
 
 exit 0
 

@@ -70,11 +70,15 @@ module KernelExt
     end
     
   end
-  
+
   def self.exec_internal(*args)
     if (@debug)
       $stderr.puts("Executing: #{args.join(' ')}")
     end
+    if (args[0].is_a? Hash)
+      args[0].each { |k,v| ENV[k] = v }
+      args.slice!(0)
+    end
     Kernel.exec(*args)
-  end
+  end  
 end

@@ -11,6 +11,7 @@ class Debootstrap
   def initialize
     @debootstrap_path = "/usr/sbin/debootstrap"
     @chroot_path = "/usr/sbin/chroot"
+    @apt_get_path = "/usr/bin/apt-get"
     @suite = "lucid"
     @url = "http://archive.ubuntu.com/ubuntu"     
   end
@@ -34,9 +35,12 @@ class Debootstrap
     File.ensure_dir(apt_lib_mounted_path)
     Mount::bind(apt_lib_path, apt_lib_mounted_path)
     
-    Mount::mount("none", "${root_path}/proc", "proc")
-    Mount::mount("none", "${root_path}/dev", "dev")
-    Mount::mount("none", "${root_path}/sys", "sys")
+    File.ensure_dir("#{root_path}/proc")
+    File.ensure_dir("#{root_path}/dev")
+    File.ensure_dir("#{root_path}/sys")
+    Mount::mount("none", "#{root_path}/proc", "proc")
+    Mount::bind("/dev", "#{root_path}/dev")
+    Mount::bind("/sys", "#{root_path}/sys")
   end
   
   def bootstrap
@@ -66,7 +70,14 @@ class Debootstrap
   
   # Runs non-interactive apt-get upgrade in chroot shell
   def apt_update
-    output = KernelExt::fork_exec_get_output(create_chroot_env, @chroot_path, "apt-get", "update", "-y")
+    output = KernelExt::fork_exec_get_output(create_chroot_env, @chroot_path, 
+        root_path, @apt_get_path, "update", "-y")
+    puts(output)
+  end
+
+  def apt_dist_upgrade
+    output = KernelExt::fork_exec_get_output(create_chroot_env, @chroot_path, 
+        root_path, @apt_get_path, "dist-upgrade", "-y")
     puts(output)
   end
 end
