@@ -16,10 +16,10 @@ module Mount
     else
       cmd = [@mount_path]
       if (!type.nil?)
-        cmd.pushd("-t", type)
+        cmd.push("-t", type)
       end
       cmd.push(device, mount_path)
-      KernelExt::fork_exec_get_output(cmd)
+      KernelExt::fork_exec_get_output(*cmd)
     end
   end
   

@@ -9,21 +9,7 @@ module KernelExt
     @debug
   end
   
-  def self.process_arguments(args)
-    cmd = 0
-    if (args[0].is_a? Hash)
-      cmd = 1;
-    end
-    if (args[cmd].is_a? Array)
-      paths = args[cmd]
-      i = paths.index { |p| File.exist?(p) }
-      if (i.nil?)
-        raise "Command not found: #{paths.join(',')}"
-      end
-      args[cmd] = paths[i]
-    end
-    
-  end
+  
   
   # Executes command; if the first argument of args is an array, will take that as a list of commands and executes the first one
   # that exists.
@@ -68,6 +54,23 @@ module KernelExt
   end
   
   private
+  
+  def self.process_arguments(args)
+    cmd = 0
+    if (args[0].is_a? Hash)
+      cmd = 1;
+    end
+    if (args[cmd].is_a? Array)
+      paths = args[cmd]
+      i = paths.index { |p| File.exist?(p) }
+      if (i.nil?)
+        raise "Command not found: #{paths.join(',')}"
+      end
+      args[cmd] = paths[i]
+    end
+    
+  end
+  
   def self.exec_internal(*args)
     if (@debug)
       $stderr.puts("Executing: #{args.join(' ')}")
