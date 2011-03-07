@@ -9,12 +9,17 @@ module Mount
   
   # TODO: MacOS / Fuse doesn't support mounting a mount point inside a fuse mountpoint :-(
   
-  def self.mount(device, mount_path)
+  def self.mount(device, mount_path, type=nil)
     # TODO: cleanup code
     if (!File.exist? @mkfs_linux_path)
       KernelExt::fork_exec_get_output(@macos_ext2_mount_path, "-o", "rb+", device, mount_path)
     else
-      KernelExt::fork_exec_get_output(@mount_path, device, mount_path)
+      cmd = [@mount_path]
+      if (!type.nil?)
+        cmd.pushd("-t", type)
+      end
+      cmd.push(device, mount_path)
+      KernelExt::fork_exec_get_output(cmd)
     end
   end
   
@@ -34,4 +39,5 @@ module Mount
       KernelExt::fork_exec_get_output(@unmount_path, mount_path)
     end
   end
+  
 end

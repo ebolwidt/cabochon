@@ -2,6 +2,7 @@ require 'mount/mount.rb'
 require 'file/file_patch.rb'
 
 class Debootstrap
+  
   attr_accessor :root_path
   attr_accessor :apt_cache_path, :apt_lib_path
   attr_accessor :url
@@ -9,6 +10,7 @@ class Debootstrap
   
   def initialize
     @debootstrap_path = "/usr/sbin/debootstrap"
+    @chroot_path = "/usr/sbin/chroot"
     @suite = "lucid"
     @url = "http://archive.ubuntu.com/ubuntu"     
   end
@@ -31,6 +33,10 @@ class Debootstrap
     apt_lib_mounted_path = root_path + "/var/lib/apt"
     File.ensure_dir(apt_lib_mounted_path)
     Mount::bind(apt_lib_path, apt_lib_mounted_path)
+    
+    Mount::mount("none", "${root_path}/proc", "proc")
+    Mount::mount("none", "${root_path}/dev", "dev")
+    Mount::mount("none", "${root_path}/sys", "sys")
   end
   
   def bootstrap
@@ -39,11 +45,28 @@ class Debootstrap
     puts(output)
   end
   
+  def create_chroot_env
+    {
+      "DEBIAN_FRONTEND" => "noninteractive"
+    }
+  end
+  
   def unbind
     ensure_root_path
+    
+    Mount::unmount("${root_path}/proc")
+    Mount::unmount("${root_path}/dev")
+    Mount::unmount("${root_path}/sys")
+    
     apt_cache_mounted_path = root_path + "/var/cache/apt"
     Mount::unbind(apt_cache_mounted_path)
     apt_lib_mounted_path = root_path + "/var/lib/apt"
     Mount::unbind(apt_lib_mounted_path)
+  end
+  
+  # Runs non-interactive apt-get upgrade in chroot shell
+  def apt_update
+    output = KernelExt::fork_exec_get_output(create_chroot_env, @chroot_path, "apt-get", "update", "-y")
+    puts(output)
   end
 end
