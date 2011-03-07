@@ -80,4 +80,12 @@ class Debootstrap
         root_path, @apt_get_path, "dist-upgrade", "-y")
     puts(output)
   end
+  
+  def apt_install(packages)
+    packages.each do |package|
+      output = KernelExt::fork_exec_get_output(create_chroot_env, @chroot_path, 
+          root_path, @apt_get_path, "install", "-y", package)
+      puts(output)
+    end
+  end
 end

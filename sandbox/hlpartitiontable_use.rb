@@ -8,8 +8,8 @@ require 'debootstrap/debootstrap.rb'
 pt = PartitionTable.new
 pt.type = "mbr"
 
-proot = Partition.new(500000, Partition::Type_Linux_Data, "/", "ext2")
-pboot = Partition.new(80000, Partition::Type_Linux_Data, "/boot", "ext2")
+proot = Partition.new(1000000, Partition::Type_Linux_Data, "/", "ext2")
+pboot = Partition.new(100000, Partition::Type_Linux_Data, "/boot", "ext2")
 pt.partitions.push(proot, pboot)
 
 # Add some more partitions to test MBR extended boot records
@@ -43,6 +43,8 @@ bootstrap.bind
 bootstrap.bootstrap
 bootstrap.apt_update
 bootstrap.apt_dist_upgrade
+
+bootstrap.apt_install(["linux-headers-generic", "linux-restricted-modules-generic", "linux-restricted-modules-generic", "linux-image-generic" ])
 
 exit 0
 
