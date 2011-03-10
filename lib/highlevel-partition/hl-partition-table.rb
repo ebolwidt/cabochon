@@ -93,7 +93,7 @@ class PartitionTable
     end
     @mapping = DevMapper::map_partitions_to_devices(@path)
     if (@mapping.partition_devices.length != partitions.length)
-      DevMapper::unmap_partitions_to_devices(@mapping)
+      DevMapper::unmap_partitions_to_devices(@path)
       raise "Failed to map correctly number of partitions from devmapper (#{@mapping.partition_devices.length}) " +
             "doesn't match partititions defined in this table (#{partitions.length})"
     end

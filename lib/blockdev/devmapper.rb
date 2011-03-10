@@ -44,16 +44,10 @@ module DevMapper
       if (mapping.device.nil?)
         mapping.device = $2
       end
-      mapping.block_devices.push($2)
-      mapping.partition_devices.push("/dev/mapper/" + $1)
-    end
-    # Some versions of kpartx generate a line for the extended partition itself. We must drop it, since it is not always generated
-    # Worse, some kpartx versions contain a bug, where the block device of a logical partition doesn't point to the extended partition but
-    # to another primary partition (number 3 when extended partition is number 4)
-    if (mapping.partition_devices.length > 4)
-      if (mapping.block_devices[3].match(/^\//))
-        mapping.partition_devices.slice!(3)
-        mapping.block_devices.slice!(3)
+      partition_device = "/dev/mapper/" + $1
+      if (!MbrPartitionTable.mbr?(partition_device))
+        mapping.block_devices.push($2)
+        mapping.partition_devices.push(partition_device)
       end
     end
     mapping

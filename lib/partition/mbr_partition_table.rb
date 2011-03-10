@@ -129,4 +129,13 @@ class MbrPartitionTable
     end
     mbr
   end
+
+  def self.mbr?(path)
+    File.open(path, "rb") do |file|
+      mbr = file.read_sector(0)
+      mbr_signature = mbr[510,2].unpack("v")[0]
+      mbr_signature == 0xAA55
+    end
+  end
+
 end
