@@ -6,7 +6,7 @@ require 'blockdev/blkid'
 # "Old" Grub is now called "legacy Grub" and "Grub 2" is "Grub"
 module Grub
   @grub_mkimage_path = "/usr/bin/grub-mkimage"
-  @grub_setup_path = "/usr/bin/grub-setup"
+  @grub_setup_path = "/usr/sbin/grub-setup"
   
   
   # TODO: determine kernel version dynamically
@@ -37,7 +37,7 @@ module Grub
   # Copies files from source location, of the required architecture, to the /boot directory
   # in the image.
   def self.copy_grub_files(grub_dir, architecture="i386-pc")
-    FileUtils::cp_r("/usr/lib/grub/#{architecture}", grub_dir)
+    FileUtils::cp_r(Dir.glob("/usr/lib/grub/#{architecture}/*"), grub_dir)
   end
   
   def self.create_load_cfg(root_device)
