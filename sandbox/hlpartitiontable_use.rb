@@ -4,6 +4,7 @@ require 'rubygems'
 require 'hl-partition.rb'
 require 'file/file_patch.rb'
 require 'debootstrap/debootstrap.rb'
+require 'grub/grub.rb'
 
 pt = PartitionTable.new
 #pt.type = "mbr"

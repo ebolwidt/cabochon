@@ -1,5 +1,7 @@
 require 'fileutils'
 require 'erb'
+require 'blockdev/blkid'
+
 # Depends on the availability of Grub 2 (version 1.98 or higher)
 # "Old" Grub is now called "legacy Grub" and "Grub 2" is "Grub"
 module Grub
@@ -24,17 +26,18 @@ module Grub
     load_cfg = "search.fs_uuid #{uuid} root " 
     load_cfg << 'set prefix=($root)/boot/grub'
     load_cfg << 'set root=(hd0,1)'
+    load_cfg << "\n"
     load_cfg
   end
   
   def self.create_device_map(root_device)
-    "(hd0) #{root_device}"
+    "(hd0) #{root_device}\n"
   end
   
   def self.create_grub_cfg(root_device, kernel)
     uuid = BlkId::blkid(root_device)
     
-    ERB.new <<-EOF
+    erb = ERB.new <<-EOF
 insmod ext2
 set root='(/dev/sda,1)'
 search --no-floppy --fs-uuid --set <%= uuid %>
@@ -44,5 +47,6 @@ initrd  /boot/initrd.img-<%= kernel %>
 
 boot
     EOF
+    erb.result(binding)
   end
 end
