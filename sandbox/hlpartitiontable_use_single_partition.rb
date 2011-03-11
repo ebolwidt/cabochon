@@ -7,8 +7,8 @@ require 'debootstrap/debootstrap.rb'
 require 'grub/grub.rb'
 
 pt = PartitionTable.new
-#pt.type = "mbr"
-pt.type = "gpt"
+pt.type = "mbr"
+#pt.type = "gpt"
 
 proot = Partition.new(1000000, Partition::Type_Linux_Data, "/", "ext2")
 pt.partitions.push(proot)
@@ -48,7 +48,7 @@ bootstrap.apt_dist_upgrade
 bootstrap.apt_install(["linux-headers-generic", "linux-restricted-modules-generic", "linux-restricted-modules-generic", "linux-image-generic" ])
 
 root = pt.root_partition
-Grub::install_grub(root.device, root.mount_path)
+Grub::install_grub(pt.device, root.device, root.mount_path)
 
 exit 0
 

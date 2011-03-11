@@ -11,11 +11,11 @@ module Grub
   
   
   # TODO: determine kernel version dynamically
-  def self.install_grub(root_device, root_mount_path, kernel="2.6.32-21")
+  def self.install_grub(disk_device, root_device, root_mount_path, kernel="2.6.32-21")
     grub_dir = "#{root_mount_path}/boot/grub"
     copy_grub_files(grub_dir)
     File.open("#{grub_dir}/load.cfg", "w") { |file| file.write(create_load_cfg(root_device)) }
-    File.open("#{grub_dir}/device.map", "w") { |file| file.write(create_device_map(root_device)) }
+    File.open("#{grub_dir}/device.map", "w") { |file| file.write(create_device_map(disk_device)) }
     File.open("#{grub_dir}/grub.cfg", "w") { |file| file.write(create_grub_cfg(root_device, kernel)) }
     mkimage(grub_dir)
     setup(grub_dir)
@@ -50,8 +50,8 @@ module Grub
     load_cfg
   end
   
-  def self.create_device_map(root_device)
-    "(hd0) #{root_device}\n"
+  def self.create_device_map(disk_device)
+    "(hd0) #{disk_device}\n"
   end
   
   def self.create_grub_cfg(root_device, kernel)

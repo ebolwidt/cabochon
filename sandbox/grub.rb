@@ -9,11 +9,12 @@ require 'kernelext/kernelext'
 
 KernelExt::debug = true
 
-device = "/dev/mapper/loop0p1"
+disk = "/dev/loop0"
+device = "/dev/mpr_loop0p1"
 
 uuid = BlkId::blkid(device)
 
 puts("UUID: #{uuid}")
 
-Grub::install_grub(device, "tmp/mountpoint")
+Grub::install_grub(disk, device, "tmp/mountpoint")
 
