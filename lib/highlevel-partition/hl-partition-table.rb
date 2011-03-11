@@ -7,6 +7,7 @@ require 'blockdev/devmapper.rb'
 require 'newfs/newfs.rb'
 require 'mount/mount.rb'
 require 'file/file_patch.rb'
+require 'kernelext/kernelext.rb'
 
 # High-level partitions can be created on both MBR and GUID partition tables
 # They know how to lay themselves out on the disk
@@ -102,8 +103,9 @@ class PartitionTable
       device = @mapping.partition_devices[i]
       # Now fix up device in /dev/mapper - copy it to /dev
       if (device.match(/^\/dev\/mapper\/(.*)$/))
-        new_device = "/dev/mpr#{$1}"
-        FileUtils::cp_r(device, new_device)
+        new_device = "/dev/mpr_#{$1}"
+        # FileUtils::cp_r doesn't support devices
+        output = KernelExt::fork_exec_get_output("/bin/cp", "-R", device, new_device)
         device = new_device
       end
       partitions[i].device = device
