@@ -6,7 +6,8 @@ require 'file/file_patch.rb'
 require 'debootstrap/debootstrap.rb'
 
 pt = PartitionTable.new
-pt.type = "mbr"
+#pt.type = "mbr"
+pt.type = "gpt"
 
 proot = Partition.new(1000000, Partition::Type_Linux_Data, "/", "ext2")
 pboot = Partition.new(100000, Partition::Type_Linux_Data, "/boot", "ext2")

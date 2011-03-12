@@ -1,6 +1,4 @@
 require 'mount/mount.rb'
-require 'file/file_patch.rb'
-
 class Debootstrap
   
   attr_accessor :root_path
