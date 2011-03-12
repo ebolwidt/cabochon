@@ -7,6 +7,8 @@ module DevMapper
   @dmsetup_path = "/sbin/dmsetup"
   @hdiutil_path = "/usr/bin/hdiutil"
   
+  @grub_workaround = true
+  
   class Mapping
     attr_accessor :path, :device, :partition_devices, :block_devices
     
@@ -35,7 +37,7 @@ module DevMapper
   def self.unmap_partitions_to_devices(path)
     invoke_kpartx_or_hdiutil(proc { |args| unmap_partitions_to_devices_kpartx(*args) }, proc { |args| unmap_partitions_to_devices_hdiutil(*args) }, path)
   end
-
+  
   def self.get_mapping(path)
     path = path.path if (path.is_a? File)
     output = KernelExt::fork_exec_get_output(@kpartx_path, path) 
@@ -46,6 +48,13 @@ module DevMapper
       end
       partition_device = "/dev/mapper/" + $1
       if (!MbrPartitionTable.mbr?(partition_device))
+        if (@grub_workaround)
+          # Now fix up device in /dev/mapper - copy it to /dev
+          new_device = "/dev/mpr_#{$1}"
+          # FileUtils::cp_r doesn't support devices
+          output = KernelExt::fork_exec_get_output("/bin/cp", "-R", partition_device, new_device)
+          partition_device = new_device
+        end
         mapping.block_devices.push($2)
         mapping.partition_devices.push(partition_device)
       end
@@ -56,9 +65,14 @@ module DevMapper
   def self.unmount_partitions(path)
     path = path.path if (path.is_a? File)
     devices = Loop::devices_for(path)
-    devices.each do |device|
+    devices.each do |device|      
       mapping = get_mapping(device)
       mapping.partition_devices.reverse.each do |partition_device|
+        if (@grub_workaround)
+          if (partition_device.match(/^\/dev\/mapper\/(.*)$/))
+            partition_device = "/dev/mpr_#{$1}"
+          end
+        end
         Mount::unmount(partition_device)
       end
     end
