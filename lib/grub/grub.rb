@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'erb'
 require 'blockdev/blkid'
+require 'kernelext/kernelext.rb'
 
 # Depends on the availability of Grub 2 (version 1.98 or higher)
 # "Old" Grub is now called "legacy Grub" and "Grub 2" is "Grub"
