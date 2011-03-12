@@ -58,9 +58,9 @@ class Debootstrap
   def unbind
     ensure_root_path
     
-    Mount::unmount("${root_path}/proc")
-    Mount::unmount("${root_path}/dev")
-    Mount::unmount("${root_path}/sys")
+    Mount::unmount("#{root_path}/proc")
+    Mount::unmount("#{root_path}/dev")
+    Mount::unmount("#{root_path}/sys")
     
     apt_cache_mounted_path = root_path + "/var/cache/apt"
     Mount::unbind(apt_cache_mounted_path)
