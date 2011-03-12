@@ -1,5 +1,6 @@
 # High-level partitions
 
+require 'fileutils'
 require 'partition'
 require 'imgfile/imgfile.rb'
 require 'blockdev/devmapper.rb'
@@ -98,7 +99,14 @@ class PartitionTable
             "doesn't match partititions defined in this table (#{partitions.length})"
     end
     0.upto(partitions.length - 1) do |i|
-      partitions[i].device = @mapping.partition_devices[i]
+      device = @mapping.partition_devices[i]
+      # Now fix up device in /dev/mapper - copy it to /dev
+      if (device.match(/^\/dev\/mapper\/(.*)$/))
+        new_device = "/dev/mpr#{$1}"
+        FileUtils::cp_r(device, new_device)
+        device = new_device
+      end
+      partitions[i].device = device
     end
   end
   
