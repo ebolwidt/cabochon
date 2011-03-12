@@ -26,6 +26,8 @@ class PartitionTable
   # Mount path for the entire image
   attr_accessor :mount_path
   
+  attr_accessor :device
+  
   def initialize
     @partitions = []
     @type = "gpt"
@@ -99,10 +101,9 @@ class PartitionTable
       raise "Failed to map correctly number of partitions from devmapper (#{@mapping.partition_devices.length}) " +
             "doesn't match partititions defined in this table (#{partitions.length})"
     end
+    @device = @mapping.device
     0.upto(partitions.length - 1) do |i|
-      device = @mapping.partition_devices[i]
-      
-      partitions[i].device = device
+      partitions[i].device = @mapping.partition_devices[i]
     end
   end
   
